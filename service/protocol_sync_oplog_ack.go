@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 
 	"github.com/ailabstw/go-pttai/common/types"
-	"github.com/ailabstw/go-pttai/log"
 )
 
 type SyncOplogAck struct {
@@ -34,7 +33,7 @@ type SyncOplogAck struct {
 }
 
 /*
-SyncOplogAck: sending SyncOplogAck. Passed validating the oplogs until toSyncTime.
+SyncOplogAck: (The receiver) sending SyncOplogAck. Passed validating the oplogs until toSyncTime.
 	=> get the merkleNodes with level as MerkleTreeLevelNow from offsetHoursTS to now (blocked).
 	=> Send the merkleNodes to the peer.
 */
@@ -73,7 +72,6 @@ func (pm *BaseProtocolManager) SyncOplogAck(
 			startHourTS,
 			now,
 		)
-		log.Debug("SyncOplogAck: (in-for-loop) after syncOplogAckCore", "offsetHourTS", offsetHourTS, "currentHourTS", currentHourTS, "now", now, "nodes", len(nodes))
 		if err != nil {
 			return err
 		}
@@ -154,8 +152,6 @@ func (pm *BaseProtocolManager) syncOplogAckCore(
 			EndTS:       currentHourTS,
 		}
 
-		log.Debug("syncOplogAckCore: to SendDataToPeer", "entity", pm.Entity().GetID(), "service", pm.Entity().Service().Name(), "nodes", nodes, "offsetHourTS", offsetHourTS, "startHourTS", startHourTS, "currentHourTS", currentHourTS)
-
 		err = pm.SendDataToPeer(syncOplogAckMsg, syncOplogAck, peer)
 		if err != nil {
 			return nil, types.ZeroTimestamp, types.ZeroTimestamp, err
@@ -198,8 +194,6 @@ func (pm *BaseProtocolManager) syncOplogAckCore(
 			EndTS:       endTS,
 		}
 
-		log.Debug("syncOplogAckCore: to SendDataToPeer (in-for-loop)", "entity", pm.Entity().GetID(), "service", pm.Entity().Service().Name(), "nodes", eachEachNodes, "offsetHourTS", offsetHourTS, "StartHourTS (currentHourTS)", currentHourTS, "EndHourTS (nextHourTS)", nextHourTS, "StartTS", startTS, "EndTS", endTS)
-
 		err = pm.SendDataToPeer(syncOplogAckMsg, syncOplogAck, peer)
 		if err != nil {
 			return nil, types.ZeroTimestamp, types.ZeroTimestamp, err
@@ -211,6 +205,13 @@ func (pm *BaseProtocolManager) syncOplogAckCore(
 	return nodes, nextHourTS, nextHourTS, nil
 }
 
+/*
+HandleSyncOplogAck: (The requester) received sync-oplog-ack.
+	1. Filter the oplogs to be after to-sync-time.
+	2. get my merkle-nodes between startTS and endTS
+	3. merge merkle-nodes.
+	4. SyncOplogNewOplogs
+*/
 func (pm *BaseProtocolManager) HandleSyncOplogAck(
 	dataBytes []byte,
 	peer *PttPeer,
@@ -238,31 +239,15 @@ func (pm *BaseProtocolManager) HandleSyncOplogAck(
 		return err
 	}
 
-	myNodes, err := merkle.GetMerkleTreeListByLevel(MerkleTreeLevelNow, data.StartHourTS, data.EndHourTS)
+	myNodes, err := merkle.GetMerkleTreeListByLevel(MerkleTreeLevelNow, data.StartTS, data.EndTS)
 	if err != nil {
 		return err
 	}
-
-	myNodes = pm.handleSyncOplogAckFilterTS(myNodes, data.StartTS, data.EndTS)
 
 	myNewKeys, theirNewKeys, err := MergeMerkleNodeKeys(myNodes, data.Nodes)
 	if err != nil {
 		return err
 	}
 
-	log.Debug("HandleSyncOplogAck: to SyncOplogNewOplogs", "myNodes", myNodes, "myNewKeys", len(myNewKeys), "theirNewKeys", len(theirNewKeys), "newLogsMsg", newLogsMsg, "entity", pm.Entity().GetID(), "service", pm.Entity().Service().Name())
-
 	return pm.SyncOplogNewOplogs(data, myNewKeys, theirNewKeys, peer, setDB, setNewestOplog, postsync, newLogsMsg)
-}
-
-func (pm *BaseProtocolManager) handleSyncOplogAckFilterTS(nodes []*MerkleNode, startTS types.Timestamp, endTS types.Timestamp) []*MerkleNode {
-	newNodes := make([]*MerkleNode, 0, len(nodes))
-
-	for _, node := range nodes {
-		if startTS.IsLessEqual(node.UpdateTS) && node.UpdateTS.IsLess(endTS) {
-			newNodes = append(newNodes, node)
-		}
-	}
-
-	return newNodes
 }

@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 
 	"github.com/ailabstw/go-pttai/common/types"
-	"github.com/ailabstw/go-pttai/log"
 )
 
 type SyncOplogNewOplogs struct {
@@ -29,6 +28,14 @@ type SyncOplogNewOplogs struct {
 	MyNewKeys [][]byte     `json:"K"`
 }
 
+/*
+SyncOplogNewOplogs: (The requester) sending SyncOplogNewOplogs.
+
+	1. get theirNewLogs.
+	2. if we do not need to sync new oplogs: do postsync.
+	3. setNewestLog
+	4. SendDataToPeer.
+*/
 func (pm *BaseProtocolManager) SyncOplogNewOplogs(
 	syncOplogAck *SyncOplogAck,
 	myNewKeys [][]byte,
@@ -49,7 +56,6 @@ func (pm *BaseProtocolManager) SyncOplogNewOplogs(
 	}
 
 	theirNewLogs, err := getOplogsFromKeys(setDB, theirNewKeys)
-	log.Debug("SyncOplogNewOplogs: after get theirNewLogs", "theirNewLogs", len(theirNewLogs), "myNewKeys", len(myNewKeys), "e", err)
 	if err != nil {
 		return err
 	}
@@ -74,8 +80,6 @@ func (pm *BaseProtocolManager) SyncOplogNewOplogs(
 		MyNewKeys: myNewKeys,
 	}
 
-	log.Debug("SyncOplogNewOplogs: to SendDataToPeer", "oplogs", theirNewLogs, "myNewKeys", len(myNewKeys), "newLogsMsg", newLogsMsg, "entity", pm.Entity().GetID(), "service", pm.Entity().Service().Name())
-
 	err = pm.SendDataToPeer(newLogsMsg, data, peer)
 	if err != nil {
 		return err
@@ -84,6 +88,13 @@ func (pm *BaseProtocolManager) SyncOplogNewOplogs(
 	return nil
 }
 
+/*
+HandleSyncOplogNewOplogs: (The receiver) receives SyncOplogNewOplogs
+
+	1. filter the oplogs to be after toSyncTime.
+	2. handleOplogs
+	3. SyncOplogNewOplogsAck
+*/
 func (pm *BaseProtocolManager) HandleSyncOplogNewOplogs(
 	dataBytes []byte,
 	peer *PttPeer,
