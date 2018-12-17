@@ -417,8 +417,8 @@ func preprocessOplogs(
 				break
 			}
 		}
-		if startIdx != lenLogs {
-			expiredLog := oplogs[0]
+		if startIdx != 0 {
+			expiredLog := oplogs[startIdx-1]
 			log.Warn("preprocessOplogs: received expired oplogs", "expiredLog", expiredLog.ID, "expiredTS", expiredLog.UpdateTS, "expireTS", expireTS, "peer", peer)
 			oplogs = oplogs[startIdx:]
 		}
