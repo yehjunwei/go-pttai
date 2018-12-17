@@ -367,30 +367,15 @@ func handlePendingOplog(
 	return isNewSign, origLogs, nil
 }
 
-/**********
- * Handle Failed Oplogs
- **********/
+/*
+preprocessOplogs: preprocess oplog.
 
-func HandleFailedOplogs(
-	oplogs []*BaseOplog, setDB func(oplog *BaseOplog),
-	handleFailedOplog func(oplog *BaseOplog) error,
-) error {
-
-	var err error
-	for _, oplog := range oplogs {
-		setDB(oplog)
-
-		err = handleFailedOplog(oplog)
-		if err != nil {
-			continue
-		}
-
-		oplog.Delete(false)
-	}
-
-	return nil
-}
-
+	1. check expire-ts.
+	2. check future-ts.
+	3. init.
+	4. verify.
+	5. check prelog.
+*/
 func preprocessOplogs(
 	oplogs []*BaseOplog,
 	setDB func(oplog *BaseOplog),
@@ -402,7 +387,7 @@ func preprocessOplogs(
 ) ([]*BaseOplog, error) {
 	var err error
 
-	// expire-ts: start-idx
+	// expire-ts.
 	lenLogs := len(oplogs)
 	if !isSkipExpireTS {
 		expireTS, err := merkle.ToSyncTime()
@@ -424,7 +409,7 @@ func preprocessOplogs(
 		}
 	}
 
-	// expire-ts: end-idx
+	// future-ts.
 	now, err := types.GetTimestamp()
 	if err != nil {
 		return nil, err
@@ -490,6 +475,12 @@ func preprocessOplogs(
 	return oplogs[:badIdx], nil
 }
 
+/*
+checkPreLog: check prelog. (whether prelog exists.)
+
+	1. possibly exists in existIDs
+	2. get from db.
+*/
 func checkPreOplog(oplog *BaseOplog, prelog *BaseOplog, existIDs map[types.PttID]*BaseOplog) error {
 
 	if oplog.PreLogID == nil {
@@ -513,5 +504,29 @@ func checkPreOplog(oplog *BaseOplog, prelog *BaseOplog, existIDs map[types.PttID
 	}
 
 	existIDs[*oplog.ID] = oplog
+	return nil
+}
+
+/**********
+ * Handle Failed Oplogs
+ **********/
+
+func HandleFailedOplogs(
+	oplogs []*BaseOplog, setDB func(oplog *BaseOplog),
+	handleFailedOplog func(oplog *BaseOplog) error,
+) error {
+
+	var err error
+	for _, oplog := range oplogs {
+		setDB(oplog)
+
+		err = handleFailedOplog(oplog)
+		if err != nil {
+			continue
+		}
+
+		oplog.Delete(false)
+	}
+
 	return nil
 }

@@ -99,7 +99,6 @@ func (pm *BaseProtocolManager) SetNewestMasterOplog(oplog *BaseOplog) error {
 /**********
  * Handle Failed Oplog
  **********/
-
 func (pm *BaseProtocolManager) HandleFailedMasterOplog(oplog *BaseOplog) error {
 	var err error
 
@@ -108,6 +107,22 @@ func (pm *BaseProtocolManager) HandleFailedMasterOplog(oplog *BaseOplog) error {
 		err = pm.handleFailedAddMasterLog(oplog)
 	case MasterOpTypeTransferMaster:
 		err = pm.handleFailedTransferMasterLog(oplog)
+	}
+
+	return err
+}
+
+/**********
+ * Handle Failed Valid Oplog
+ **********/
+func (pm *BaseProtocolManager) HandleFailedValidMasterOplog(oplog *BaseOplog) error {
+	var err error
+
+	switch oplog.Op {
+	case MasterOpTypeAddMaster:
+		err = pm.handleFailedValidAddMasterLog(oplog)
+	case MasterOpTypeTransferMaster:
+		err = pm.handleFailedValidTransferMasterLog(oplog)
 	}
 
 	return err

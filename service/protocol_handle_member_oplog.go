@@ -134,6 +134,25 @@ func (pm *BaseProtocolManager) HandleFailedMemberOplog(oplog *BaseOplog) error {
 }
 
 /**********
+ * Handle Failed Valid Oplog
+ **********/
+
+func (pm *BaseProtocolManager) HandleFailedValidMemberOplog(oplog *BaseOplog) error {
+	var err error
+
+	switch oplog.Op {
+	case MemberOpTypeAddMember:
+		err = pm.handleFailedValidAddMemberLog(oplog)
+	case MemberOpTypeDeleteMember:
+		err = pm.handleFailedValidDeleteMemberLog(oplog)
+	case MemberOpTypeTransferMember:
+		err = pm.handleFailedValidTransferMemberLog(oplog)
+	}
+
+	return err
+}
+
+/**********
  * Postsync Oplog
  **********/
 

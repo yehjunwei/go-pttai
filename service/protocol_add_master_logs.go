@@ -69,6 +69,10 @@ func (pm *BaseProtocolManager) handleFailedAddMasterLog(oplog *BaseOplog) error 
 	}
 }
 
+func (pm *BaseProtocolManager) handleFailedValidAddMasterLog(oplog *BaseOplog) error {
+	return types.ErrNotImplemented
+}
+
 /**********
  * Customize
  **********/

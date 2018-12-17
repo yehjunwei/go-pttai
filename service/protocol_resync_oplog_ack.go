@@ -41,7 +41,7 @@ func (pm *BaseProtocolManager) HandleResyncOplogAck(
 	peer *PttPeer,
 
 	setDB func(oplog *BaseOplog),
-	handleFailedValidOplogs func(oplogs []*BaseOplog) error,
+	handleFailedValidOplog func(oplog *BaseOplog) error,
 	handleOplogs func(oplogs []*BaseOplog, peer *PttPeer, isUpdateSyncTime bool, isSkipExpireTS bool) error,
 
 ) error {
@@ -68,7 +68,7 @@ func (pm *BaseProtocolManager) HandleResyncOplogAck(
 		return err
 	}
 
-	err = handleFailedValidOplogs(myOplogs)
+	err = HandleFailedOplogs(myOplogs, setDB, handleFailedValidOplog)
 	if err != nil {
 		return err
 	}
