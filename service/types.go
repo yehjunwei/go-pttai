@@ -33,6 +33,7 @@ const (
 	MerkleTreeLevelDay
 	MerkleTreeLevelMonth
 	MerkleTreeLevelYear
+	MerkleTreeLevelAll
 )
 
 // PeerType
