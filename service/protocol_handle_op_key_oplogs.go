@@ -52,11 +52,25 @@ func (pm *BaseProtocolManager) HandleSyncPendingOpKeyOplogAck(dataBytes []byte, 
  * HandleOplogs
  **********/
 
-func (pm *BaseProtocolManager) HandleOpKeyOplogs(oplogs []*BaseOplog, peer *PttPeer, isUpdateSyncTime bool) error {
+func (pm *BaseProtocolManager) HandleOpKeyOplogs(oplogs []*BaseOplog, peer *PttPeer, isUpdateSyncTime bool, isSkipExpireTS bool) error {
 
 	info := NewProcessOpKeyInfo()
 
-	return HandleOplogs(oplogs, peer, isUpdateSyncTime, info, nil, pm.SetOpKeyDB, pm.processOpKeyLog, pm.postprocessOpKeyOplogs)
+	return HandleOplogs(
+		oplogs,
+		peer,
+
+		isUpdateSyncTime,
+		isSkipExpireTS,
+
+		info,
+		nil,
+
+		pm.SetOpKeyDB,
+		pm.processOpKeyLog,
+		pm.postprocessOpKeyOplogs,
+	)
+
 }
 
 func (pm *BaseProtocolManager) HandlePendingOpKeyOplogs(oplogs []*BaseOplog, peer *PttPeer) error {

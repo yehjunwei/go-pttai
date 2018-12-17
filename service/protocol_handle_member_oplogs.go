@@ -72,17 +72,39 @@ func (pm *BaseProtocolManager) HandleSyncPendingMemberOplogAck(dataBytes []byte,
  * HandleOplogs
  **********/
 
-func (pm *BaseProtocolManager) HandleMemberOplogs(oplogs []*BaseOplog, peer *PttPeer, isUpdateSyncTime bool) error {
+func (pm *BaseProtocolManager) HandleMemberOplogs(oplogs []*BaseOplog, peer *PttPeer, isUpdateSyncTime bool, isSkipExpireTS bool) error {
 
 	info := NewProcessPersonInfo()
 
-	return HandleOplogs(oplogs, peer, isUpdateSyncTime, info, pm.memberMerkle, pm.SetMemberDB, pm.processMemberLog, pm.postprocessMemberOplogs)
+	return HandleOplogs(
+		oplogs,
+		peer,
+
+		isUpdateSyncTime,
+		isSkipExpireTS,
+
+		info,
+		pm.memberMerkle,
+
+		pm.SetMemberDB,
+		pm.processMemberLog,
+		pm.postprocessMemberOplogs,
+	)
 }
 
 func (pm *BaseProtocolManager) HandlePendingMemberOplogs(oplogs []*BaseOplog, peer *PttPeer) error {
 
 	info := NewProcessPersonInfo()
 
-	return HandlePendingOplogs(oplogs, peer, pm, info, pm.SetMemberDB, pm.processPendingMemberLog, pm.processMemberLog, pm.postprocessMemberOplogs)
+	return HandlePendingOplogs(
+		oplogs,
+		peer,
+		pm,
+		info,
 
+		pm.SetMemberDB,
+		pm.processPendingMemberLog,
+		pm.processMemberLog,
+		pm.postprocessMemberOplogs,
+	)
 }

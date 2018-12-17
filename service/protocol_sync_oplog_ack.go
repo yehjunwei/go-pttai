@@ -247,5 +247,5 @@ func (pm *BaseProtocolManager) HandleSyncOplogAck(
 		return err
 	}
 
-	return pm.SyncOplogNewOplogs(data, myNewKeys, theirNewKeys, peer, setDB, setNewestOplog, postsync, newLogsMsg)
+	return pm.SyncOplogNewOplogs(myNewKeys, theirNewKeys, peer, setDB, setNewestOplog, postsync, newLogsMsg)
 }

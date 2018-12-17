@@ -58,7 +58,7 @@ func (pm *BaseProtocolManager) HandleSyncOpKeyOplog(dataBytes []byte, peer *PttP
 		return err
 	}
 
-	err = pm.HandleOpKeyOplogs(data.Oplogs, peer, false)
+	err = pm.HandleOpKeyOplogs(data.Oplogs, peer, false, false)
 	if err != nil {
 		return err
 	}

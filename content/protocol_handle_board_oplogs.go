@@ -74,12 +74,24 @@ func (pm *ProtocolManager) HandleSyncPendingBoardOplogAck(dataBytes []byte, peer
  * HandleOplogs
  **********/
 
-func (pm *ProtocolManager) HandleBoardOplogs(oplogs []*pkgservice.BaseOplog, peer *pkgservice.PttPeer, isUpdateSyncTime bool) error {
+func (pm *ProtocolManager) HandleBoardOplogs(oplogs []*pkgservice.BaseOplog, peer *pkgservice.PttPeer, isUpdateSyncTime bool, isSkipExpireTS bool) error {
 
 	info := NewProcessBoardInfo()
 	merkle := pm.boardOplogMerkle
 
-	return pkgservice.HandleOplogs(oplogs, peer, isUpdateSyncTime, info, merkle, pm.SetBoardDB, pm.processBoardLog, pm.postprocessBoardOplogs)
+	return pkgservice.HandleOplogs(
+		oplogs,
+		peer,
+		isUpdateSyncTime,
+		isSkipExpireTS,
+
+		info,
+		merkle,
+
+		pm.SetBoardDB,
+		pm.processBoardLog,
+		pm.postprocessBoardOplogs,
+	)
 }
 
 func (pm *ProtocolManager) HandlePendingBoardOplogs(oplogs []*pkgservice.BaseOplog, peer *pkgservice.PttPeer) error {

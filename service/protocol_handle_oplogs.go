@@ -37,6 +37,7 @@ func HandleOplogs(
 	oplogs []*BaseOplog,
 	peer *PttPeer,
 	isUpdateSyncTime bool,
+	isSkipExpireTS bool,
 
 	info ProcessInfo,
 	merkle *Merkle,
@@ -52,7 +53,15 @@ func HandleOplogs(
 		return nil
 	}
 
-	oplogs, err = preprocessOplogs(oplogs, setDB, isUpdateSyncTime, merkle, peer)
+	oplogs, err = preprocessOplogs(
+		oplogs,
+		setDB,
+		isUpdateSyncTime,
+		isSkipExpireTS,
+
+		merkle,
+		peer,
+	)
 	if err != nil {
 		return err
 	}
@@ -199,9 +208,17 @@ func HandlePendingOplogs(
 		return nil
 	}
 
-	log.Debug("HandlePendingOplogs: to preprocessOplogs", "e", err, "oplogs", oplogs)
-	oplogs, err = preprocessOplogs(oplogs, setDB, false, nil, peer)
-	log.Debug("HandlePendingOplogs: after preprocessOplogs", "e", err, "oplogs", oplogs)
+	oplogs, err = preprocessOplogs(
+		oplogs,
+		setDB,
+
+		false,
+		false,
+
+		nil,
+		peer,
+	)
+
 	if err != nil {
 		return err
 	}
@@ -378,46 +395,42 @@ func preprocessOplogs(
 	oplogs []*BaseOplog,
 	setDB func(oplog *BaseOplog),
 	isUpdateSyncTime bool,
+	isSkipExpireTS bool,
+
 	merkle *Merkle,
 	peer *PttPeer,
 ) ([]*BaseOplog, error) {
 	var err error
 
-	// expire-ts
+	// expire-ts: start-idx
+	lenLogs := len(oplogs)
+	if !isSkipExpireTS {
+		expireTS, err := merkle.ToSyncTime()
+		if err != nil {
+			return nil, err
+		}
+
+		startIdx := lenLogs
+		for i, oplog := range oplogs {
+			if expireTS.IsLess(oplog.UpdateTS) {
+				startIdx = i
+				break
+			}
+		}
+		if startIdx != lenLogs {
+			expiredLog := oplogs[0]
+			log.Warn("preprocessOplogs: received expired oplogs", "expiredLog", expiredLog.ID, "expiredTS", expiredLog.UpdateTS, "expireTS", expireTS, "peer", peer)
+			oplogs = oplogs[startIdx:]
+		}
+	}
+
+	// expire-ts: end-idx
 	now, err := types.GetTimestamp()
 	if err != nil {
 		return nil, err
 	}
-	expireTS := now
-	if isUpdateSyncTime {
-		ts, err := merkle.GetSyncTime()
-		if err != nil {
-			return nil, err
-		}
-		expireTS = ts
-	}
-	expireTS.Ts -= OffsetMerkleSyncTime
 
-	log.Debug("preprocessOplogs: start", "oplogs", oplogs, "expireTS", expireTS, "merkle", merkle)
-
-	// expire-ts: start-idx
-	startIdx := len(oplogs)
-	for i, oplog := range oplogs {
-		if expireTS.IsLess(oplog.UpdateTS) {
-			startIdx = i
-			break
-		}
-	}
-	if startIdx != 0 {
-		expiredLog := oplogs[0]
-		log.Warn("preprocessOplogs: received expired oplogs", "expiredLog", expiredLog.ID, "expiredTS", expiredLog.UpdateTS, "expireTS", expireTS, "peer", peer)
-		oplogs = oplogs[startIdx:]
-	}
-
-	log.Debug("preprocessOplogs: after startIdx", "startIdx", startIdx, "oplogs", oplogs)
-
-	// expire-ts: end-idx
-	lenLogs := len(oplogs)
+	lenLogs = len(oplogs)
 	endIdx := 0
 	for i := lenLogs - 1; i >= 0; i-- {
 		if oplogs[i].UpdateTS.IsLess(now) {

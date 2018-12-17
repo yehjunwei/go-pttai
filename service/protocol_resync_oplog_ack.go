@@ -22,85 +22,28 @@ import (
 	"github.com/ailabstw/go-pttai/common/types"
 )
 
-type SyncOplogNewOplogs struct {
-	Oplogs    []*BaseOplog `json:"O"`
-	MyNewKeys [][]byte     `json:"K"`
-}
-
-/*
-SyncOplogNewOplogs: (The requester) sending SyncOplogNewOplogs.
-
-	1. get theirNewLogs.
-	2. if we do not need to sync new oplogs: do postsync.
-	3. setNewestLog
-	4. SendDataToPeer.
-*/
-func (pm *BaseProtocolManager) SyncOplogNewOplogs(
+func (pm *BaseProtocolManager) ResyncOplogAck(
 	myNewKeys [][]byte,
 	theirNewKeys [][]byte,
 	peer *PttPeer,
+
 	setDB func(oplog *BaseOplog),
 	setNewestOplog func(log *BaseOplog) error,
-	postsync func(peer *PttPeer) error,
-	newLogsMsg OpType,
+
+	resyncAckMsg OpType,
 ) error {
 
-	if len(theirNewKeys) == 0 && len(myNewKeys) == 0 {
-		if postsync != nil {
-			return postsync(peer)
-		}
-
-		return nil
-	}
-
-	theirNewLogs, err := getOplogsFromKeys(setDB, theirNewKeys)
-	if err != nil {
-		return err
-	}
-
-	if len(theirNewLogs) == 0 && len(myNewKeys) == 0 {
-		if postsync != nil {
-			return postsync(peer)
-		}
-
-		return nil
-	}
-
-	if setNewestOplog != nil {
-		for _, log := range theirNewLogs {
-			setNewestOplog(log)
-		}
-	}
-
-	data := &SyncOplogNewOplogs{
-		Oplogs:    theirNewLogs,
-		MyNewKeys: myNewKeys,
-	}
-
-	err = pm.SendDataToPeer(newLogsMsg, data, peer)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return pm.SyncOplogNewOplogs(myNewKeys, theirNewKeys, peer, setDB, setNewestOplog, nil, resyncAckMsg)
 }
 
-/*
-HandleSyncOplogNewOplogs: (The receiver) receives SyncOplogNewOplogs
-
-	1. filter the oplogs to be after toSyncTime.
-	2. handleOplogs
-	3. SyncOplogNewOplogsAck
-*/
-func (pm *BaseProtocolManager) HandleSyncOplogNewOplogs(
+func (pm *BaseProtocolManager) HandleResyncOplogAck(
 	dataBytes []byte,
 	peer *PttPeer,
+
 	setDB func(oplog *BaseOplog),
-
+	handleFailedValidOplogs func(oplogs []*BaseOplog) error,
 	handleOplogs func(oplogs []*BaseOplog, peer *PttPeer, isUpdateSyncTime bool, isSkipExpireTS bool) error,
-	setNewestOplog func(log *BaseOplog) error,
 
-	newLogsAckMsg OpType,
 ) error {
 
 	ptt := pm.Ptt()
@@ -120,10 +63,20 @@ func (pm *BaseProtocolManager) HandleSyncOplogNewOplogs(
 		return err
 	}
 
-	err = handleOplogs(data.Oplogs, peer, true, false)
+	myOplogs, err := getOplogsFromKeys(setDB, data.MyNewKeys)
 	if err != nil {
 		return err
 	}
 
-	return pm.SyncOplogNewOplogsAck(data.MyNewKeys, peer, setDB, setNewestOplog, newLogsAckMsg)
+	err = handleFailedValidOplogs(myOplogs)
+	if err != nil {
+		return err
+	}
+
+	err = handleOplogs(data.Oplogs, peer, true, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

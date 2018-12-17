@@ -74,12 +74,25 @@ func (pm *ProtocolManager) HandleSyncPendingFriendOplogAck(dataBytes []byte, pee
  * HandleOplogs
  **********/
 
-func (pm *ProtocolManager) HandleFriendOplogs(oplogs []*pkgservice.BaseOplog, peer *pkgservice.PttPeer, isUpdateSyncTime bool) error {
+func (pm *ProtocolManager) HandleFriendOplogs(oplogs []*pkgservice.BaseOplog, peer *pkgservice.PttPeer, isUpdateSyncTime bool, isSkipExpireTS bool) error {
 
 	info := NewProcessFriendInfo()
 	merkle := pm.friendOplogMerkle
 
-	return pkgservice.HandleOplogs(oplogs, peer, isUpdateSyncTime, info, merkle, pm.SetFriendDB, pm.processFriendLog, pm.postprocessFriendOplogs)
+	return pkgservice.HandleOplogs(
+		oplogs,
+		peer,
+		isUpdateSyncTime,
+		isSkipExpireTS,
+
+		info,
+		merkle,
+
+		pm.SetFriendDB,
+		pm.processFriendLog,
+		pm.postprocessFriendOplogs,
+	)
+
 }
 
 func (pm *ProtocolManager) HandlePendingFriendOplogs(oplogs []*pkgservice.BaseOplog, peer *pkgservice.PttPeer) error {

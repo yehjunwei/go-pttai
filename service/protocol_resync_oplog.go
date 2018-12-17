@@ -16,10 +16,14 @@
 
 package service
 
-import "github.com/ailabstw/go-pttai/common/types"
+import (
+	"encoding/json"
+
+	"github.com/ailabstw/go-pttai/common/types"
+)
 
 /*
-ResyncOplog (The requester) requests resync oplog.
+ResyncOplog: (The requester) requests resync oplog.
 
     1. get the merkle node with MerkleLevelNow between startTS and endTS.
     2. send to the peer.
@@ -36,4 +40,40 @@ func (pm *BaseProtocolManager) ResyncOplog(
 
 ) error {
 	return pm.SyncOplogAck(startTS, endTS, merkle, resyncMsg, peer)
+}
+
+/*
+HandleResyncOplog: (The receiver) receives resync-oplog.
+*/
+func (pm *BaseProtocolManager) HandleResyncOplog(
+	dataBytes []byte,
+	peer *PttPeer,
+
+	merkle *Merkle,
+
+	setDB func(oplog *BaseOplog),
+	setNewestOplog func(log *BaseOplog) error,
+
+	resyncAckMsg OpType,
+
+) error {
+
+	data := &SyncOplogAck{}
+	err := json.Unmarshal(dataBytes, data)
+	if err != nil {
+		return err
+	}
+
+	myNodes, err := merkle.GetMerkleTreeListByLevel(MerkleTreeLevelNow, data.StartTS, data.EndTS)
+	if err != nil {
+		return err
+	}
+
+	myNewKeys, theirNewKeys, err := MergeMerkleNodeKeys(myNodes, data.Nodes)
+	if err != nil {
+		return err
+	}
+
+	return pm.ResyncOplogAck(myNewKeys, theirNewKeys, peer, setDB, setNewestOplog, resyncAckMsg)
+
 }

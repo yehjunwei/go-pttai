@@ -74,12 +74,24 @@ func (pm *ProtocolManager) HandleSyncPendingUserOplogAck(dataBytes []byte, peer 
  * HandleOplogs
  **********/
 
-func (pm *ProtocolManager) HandleUserOplogs(oplogs []*pkgservice.BaseOplog, peer *pkgservice.PttPeer, isUpdateSyncTime bool) error {
+func (pm *ProtocolManager) HandleUserOplogs(oplogs []*pkgservice.BaseOplog, peer *pkgservice.PttPeer, isUpdateSyncTime bool, isSkipExpireTS bool) error {
 
 	info := NewProcessUserInfo()
 	merkle := pm.userOplogMerkle
 
-	return pkgservice.HandleOplogs(oplogs, peer, isUpdateSyncTime, info, merkle, pm.SetUserDB, pm.processUserLog, pm.postprocessUserOplogs)
+	return pkgservice.HandleOplogs(
+		oplogs,
+		peer,
+		isUpdateSyncTime,
+		isSkipExpireTS,
+
+		info,
+		merkle,
+
+		pm.SetUserDB,
+		pm.processUserLog,
+		pm.postprocessUserOplogs,
+	)
 }
 
 func (pm *ProtocolManager) HandlePendingUserOplogs(oplogs []*pkgservice.BaseOplog, peer *pkgservice.PttPeer) error {

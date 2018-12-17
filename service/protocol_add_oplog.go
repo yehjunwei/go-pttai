@@ -30,7 +30,7 @@ type AddOplogs struct {
 
 func (pm *BaseProtocolManager) HandleAddOplog(
 	dataBytes []byte,
-	handleOplogs func(oplogs []*BaseOplog, p *PttPeer, isUpdateSyncTime bool) error,
+	handleOplogs func(oplogs []*BaseOplog, p *PttPeer, isUpdateSyncTime bool, isSkipExpireTS bool) error,
 	peer *PttPeer) error {
 
 	data := &AddOplog{}
@@ -39,12 +39,12 @@ func (pm *BaseProtocolManager) HandleAddOplog(
 		return err
 	}
 
-	return handleOplogs([]*BaseOplog{data.Oplog}, peer, false)
+	return handleOplogs([]*BaseOplog{data.Oplog}, peer, false, false)
 }
 
 func (pm *BaseProtocolManager) HandleAddOplogs(
 	dataBytes []byte,
-	handleOplogs func(oplogs []*BaseOplog, p *PttPeer, isUpdateSyncTime bool) error,
+	handleOplogs func(oplogs []*BaseOplog, p *PttPeer, isUpdateSyncTime bool, isSkipExpireTS bool) error,
 	peer *PttPeer) error {
 
 	data := &AddOplogs{}
@@ -53,7 +53,7 @@ func (pm *BaseProtocolManager) HandleAddOplogs(
 		return err
 	}
 
-	return handleOplogs(data.Oplogs, peer, false)
+	return handleOplogs(data.Oplogs, peer, false, false)
 }
 
 func (pm *BaseProtocolManager) HandleAddPendingOplog(

@@ -121,7 +121,7 @@ type ProtocolManager interface {
 	HandleSyncPendingMasterOplog(dataBytes []byte, peer *PttPeer) error
 	HandleSyncPendingMasterOplogAck(dataBytes []byte, peer *PttPeer) error
 
-	HandleMasterOplogs(oplogs []*BaseOplog, peer *PttPeer, isUpdateSyncTime bool) error
+	HandleMasterOplogs(oplogs []*BaseOplog, peer *PttPeer, isUpdateSyncTime bool, isSkipExpireTS bool) error
 
 	GetMasterOplogList(logID *types.PttID, limit int, listOrder pttdb.ListOrder, status types.Status) ([]*MasterOplog, error)
 
@@ -146,7 +146,7 @@ type ProtocolManager interface {
 	HandleSyncPendingMemberOplog(dataBytes []byte, peer *PttPeer) error
 	HandleSyncPendingMemberOplogAck(dataBytes []byte, peer *PttPeer) error
 
-	HandleMemberOplogs(oplogs []*BaseOplog, peer *PttPeer, isUpdateSyncTime bool) error
+	HandleMemberOplogs(oplogs []*BaseOplog, peer *PttPeer, isUpdateSyncTime bool, isSkipExpireTS bool) error
 	SetMemberSyncTime(ts types.Timestamp) error
 
 	GetMemberOplogList(logID *types.PttID, limit int, listOrder pttdb.ListOrder, status types.Status) ([]*MemberOplog, error)

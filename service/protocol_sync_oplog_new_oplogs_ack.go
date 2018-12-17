@@ -26,6 +26,9 @@ type SyncOplogNewOplogsAck struct {
 	Oplogs []*BaseOplog `json:"O"`
 }
 
+/*
+SyncOplogNewOplogsAck: (The receiver) sends SyncOplogNewOplogsAck
+*/
 func (pm *BaseProtocolManager) SyncOplogNewOplogsAck(
 	keys [][]byte,
 	peer *PttPeer,
@@ -61,11 +64,14 @@ func (pm *BaseProtocolManager) SyncOplogNewOplogsAck(
 	return nil
 }
 
+/*
+HandleSyncOplogNewOplogsAck: (The requester) received SyncOplogNewOplogsAck
+*/
 func (pm *BaseProtocolManager) HandleSyncOplogNewOplogsAck(
 	dataBytes []byte,
 	peer *PttPeer,
 	setDB func(oplog *BaseOplog),
-	handleOplogs func(oplogs []*BaseOplog, peer *PttPeer, isUpdateSyncTime bool) error,
+	handleOplogs func(oplogs []*BaseOplog, peer *PttPeer, isUpdateSyncTime bool, isSkipExpireTS bool) error,
 	postsync func(peer *PttPeer) error,
 ) error {
 
@@ -86,14 +92,16 @@ func (pm *BaseProtocolManager) HandleSyncOplogNewOplogsAck(
 		return err
 	}
 
-	err = handleOplogs(data.Oplogs, peer, true)
+	err = handleOplogs(data.Oplogs, peer, true, false)
 	if err != nil {
 		return err
 	}
 
-	if postsync != nil {
-		return postsync(peer)
-	}
+	/*
+		if postsync != nil {
+			return postsync(peer)
+		}
+	*/
 
 	return nil
 }
