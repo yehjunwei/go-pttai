@@ -23,7 +23,6 @@ import (
 )
 
 type SyncOplogAck struct {
-	TS    types.Timestamp
 	Nodes []*MerkleNode `json:"N"`
 
 	StartHourTS types.Timestamp `json:"STS"`
@@ -38,7 +37,9 @@ SyncOplogAck: (The receiver) sending SyncOplogAck. Passed validating the oplogs 
 	=> Send the merkleNodes to the peer.
 */
 func (pm *BaseProtocolManager) SyncOplogAck(
-	toSyncTime types.Timestamp,
+	startTS types.Timestamp,
+	endTS types.Timestamp,
+
 	merkle *Merkle,
 
 	syncOplogAckMsg OpType,
@@ -46,31 +47,31 @@ func (pm *BaseProtocolManager) SyncOplogAck(
 	peer *PttPeer,
 ) error {
 
-	now, err := types.GetTimestamp()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	nodes := make([]*MerkleNode, 0, MaxSyncOplogAck)
 
-	if toSyncTime.IsEqual(types.ZeroTimestamp) {
-		toSyncTime = pm.Entity().GetCreateTS()
+	createTS := pm.Entity().GetCreateTS()
+	if startTS.IsLess(createTS) {
+		startTS = createTS
 	}
 
-	offsetHourTS, _ := toSyncTime.ToHRTimestamp()
+	offsetHourTS, _ := startTS.ToHRTimestamp()
 	startHourTS := offsetHourTS
 	nextHourTS := offsetHourTS
 
-	for currentHourTS := offsetHourTS; currentHourTS.IsLess(now); currentHourTS = nextHourTS {
+	for currentHourTS := offsetHourTS; currentHourTS.IsLess(endTS); currentHourTS = nextHourTS {
 		nodes, startHourTS, nextHourTS, err = pm.syncOplogAckCore(
 			merkle,
 			peer,
+
 			syncOplogAckMsg,
 			nodes,
+
 			currentHourTS,
 			offsetHourTS,
 			startHourTS,
-			now,
+			endTS,
 		)
 		if err != nil {
 			return err
@@ -83,12 +84,11 @@ func (pm *BaseProtocolManager) SyncOplogAck(
 	}
 
 	syncOplogAck := &SyncOplogAck{
-		TS:          offsetHourTS,
 		Nodes:       nodes,
 		StartHourTS: startHourTS,
-		EndHourTS:   now,
+		EndHourTS:   endTS,
 		StartTS:     startHourTS,
-		EndTS:       now,
+		EndTS:       endTS,
 	}
 
 	err = pm.SendDataToPeer(syncOplogAckMsg, syncOplogAck, peer)
@@ -119,13 +119,13 @@ func (pm *BaseProtocolManager) syncOplogAckCore(
 	currentHourTS types.Timestamp,
 	offsetHourTS types.Timestamp,
 	startHourTS types.Timestamp,
-	now types.Timestamp,
+	theEndTS types.Timestamp,
 
 ) ([]*MerkleNode, types.Timestamp, types.Timestamp, error) {
 
 	nextHourTS := currentHourTS.NextHourTS()
-	if now.IsLess(nextHourTS) {
-		nextHourTS = now
+	if theEndTS.IsLess(nextHourTS) {
+		nextHourTS = theEndTS
 	}
 
 	// 1. get the nodes of current hour.
@@ -144,7 +144,6 @@ func (pm *BaseProtocolManager) syncOplogAckCore(
 	var syncOplogAck *SyncOplogAck
 	if len(nodes) > 0 {
 		syncOplogAck = &SyncOplogAck{
-			TS:          offsetHourTS,
 			Nodes:       nodes,
 			StartHourTS: startHourTS,
 			EndHourTS:   currentHourTS,
@@ -186,7 +185,6 @@ func (pm *BaseProtocolManager) syncOplogAckCore(
 		}
 
 		syncOplogAck = &SyncOplogAck{
-			TS:          offsetHourTS,
 			Nodes:       eachEachNodes,
 			StartHourTS: currentHourTS,
 			EndHourTS:   nextHourTS,

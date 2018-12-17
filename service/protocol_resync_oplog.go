@@ -18,6 +18,12 @@ package service
 
 import "github.com/ailabstw/go-pttai/common/types"
 
+/*
+ResyncOplog (The requester) requests resync oplog.
+
+    1. get the merkle node with MerkleLevelNow between startTS and endTS.
+    2. send to the peer.
+*/
 func (pm *BaseProtocolManager) ResyncOplog(
 	peer *PttPeer,
 
@@ -29,5 +35,5 @@ func (pm *BaseProtocolManager) ResyncOplog(
 	resyncMsg OpType,
 
 ) error {
-	return types.ErrNotImplemented
+	return pm.SyncOplogAck(startTS, endTS, merkle, resyncMsg, peer)
 }

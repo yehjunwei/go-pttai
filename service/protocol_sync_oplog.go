@@ -127,5 +127,10 @@ func (pm *BaseProtocolManager) HandleSyncOplog(
 	}
 
 	// 3. SyncOplogAck
-	return pm.SyncOplogAck(toSyncTime, merkle, op, peer)
+	now, err := types.GetTimestamp()
+	if err != nil {
+		return err
+	}
+
+	return pm.SyncOplogAck(toSyncTime, now, merkle, op, peer)
 }

@@ -180,6 +180,7 @@ var (
 // oplog
 const (
 	MaxSyncOplogAck = 200
+	MaxResyncOplog  = 200
 )
 
 // object

@@ -23,7 +23,6 @@ import (
 )
 
 type SyncOplogNewOplogs struct {
-	TS        types.Timestamp
 	Oplogs    []*BaseOplog `json:"O"`
 	MyNewKeys [][]byte     `json:"K"`
 }
@@ -75,7 +74,6 @@ func (pm *BaseProtocolManager) SyncOplogNewOplogs(
 	}
 
 	data := &SyncOplogNewOplogs{
-		TS:        syncOplogAck.TS,
 		Oplogs:    theirNewLogs,
 		MyNewKeys: myNewKeys,
 	}
@@ -126,5 +124,5 @@ func (pm *BaseProtocolManager) HandleSyncOplogNewOplogs(
 		return err
 	}
 
-	return pm.SyncOplogNewOplogsAck(data.TS, data.MyNewKeys, peer, setDB, setNewestOplog, newLogsAckMsg)
+	return pm.SyncOplogNewOplogsAck(data.MyNewKeys, peer, setDB, setNewestOplog, newLogsAckMsg)
 }
