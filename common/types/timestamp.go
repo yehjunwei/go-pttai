@@ -30,6 +30,7 @@ type Timestamp struct {
 
 var GetTimestamp = func() (Timestamp, error) {
 	now := time.Now().UTC()
+	now = now.Add(time.Duration(FutureSeconds) * time.Second)
 
 	return TimeToTimestamp(now), nil
 }

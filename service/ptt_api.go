@@ -123,3 +123,16 @@ func (api *PrivateAPI) GetLocale() (Locale, error) {
 func (api *PrivateAPI) GetLastAnnounceP2PTS() (types.Timestamp, error) {
 	return api.p.GetLastAnnounceP2PTS()
 }
+
+/**********
+ * Test
+ **********/
+
+func (api *PrivateAPI) SetFutureSeconds(seconds int) (bool, error) {
+	types.FutureSeconds = seconds
+	return true, nil
+}
+
+func (api *PrivateAPI) GetFutureSeconds() (int, error) {
+	return types.FutureSeconds, nil
+}

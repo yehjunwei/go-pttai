@@ -38,6 +38,10 @@ const (
 	OffsetHash = 12
 )
 
+var (
+	FutureSeconds = 0
+)
+
 const (
 	HRSeconds  = 3600
 	DaySeconds = 86400
