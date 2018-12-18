@@ -28,9 +28,15 @@ type Timestamp struct {
 	NanoTs uint32 `json:"NT"`
 }
 
-var GetTimestamp = func() (Timestamp, error) {
+var GetTimestampTest = func() (Timestamp, error) {
 	now := time.Now().UTC()
 	now = now.Add(time.Duration(FutureSeconds) * time.Second)
+
+	return TimeToTimestamp(now), nil
+}
+
+var GetTimestamp = func() (Timestamp, error) {
+	now := time.Now().UTC()
 
 	return TimeToTimestamp(now), nil
 }

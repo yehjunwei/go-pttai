@@ -25,6 +25,7 @@ import (
 
 	"github.com/ailabstw/go-pttai/account"
 	"github.com/ailabstw/go-pttai/common/fdlimit"
+	"github.com/ailabstw/go-pttai/common/types"
 	"github.com/ailabstw/go-pttai/content"
 	"github.com/ailabstw/go-pttai/crypto"
 	"github.com/ailabstw/go-pttai/friend"
@@ -175,6 +176,11 @@ func SetPttConfig(ctx *cli.Context, cfg *pkgservice.Config, cfgNode *node.Config
 	}
 
 	pkgservice.ExpireOplogSeconds = cfg.ExpireOplogSeconds
+
+	// e2e test
+	if ctx.GlobalIsSet(E2EFlag.Name) {
+		types.GetTimestamp = types.GetTimestampTest
+	}
 
 	log.Debug("SetPttConfig: to return", "ExpireOplogSeconds", pkgservice.ExpireOplogSeconds)
 

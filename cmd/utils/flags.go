@@ -80,6 +80,10 @@ var (
 		Name:  "username",
 		Usage: "Custom user name",
 	}
+	E2EFlag = cli.BoolFlag{
+		Name:  "e2e",
+		Usage: "e2e test",
+	}
 
 	// My settings
 	MyDataDirFlag = DirectoryFlag{

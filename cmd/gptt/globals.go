@@ -74,9 +74,10 @@ var (
 		utils.FriendMinSyncRandomSecondsFlag,
 	}
 
-	// flags that configure content
+	// flags that configure service / ptt / types
 	serviceFlags = []cli.Flag{
 		utils.ServiceExpireOplogSecondsFlag,
+		utils.E2EFlag,
 	}
 
 	// flags that configure http-server
