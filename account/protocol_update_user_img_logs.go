@@ -61,6 +61,14 @@ func (pm *ProtocolManager) handleFailedUpdateUserImgLog(oplog *pkgservice.BaseOp
 	return pm.HandleFailedUpdateObjectLog(oplog, obj)
 }
 
+func (pm *ProtocolManager) handleFailedValidUpdateUserImgLog(oplog *pkgservice.BaseOplog) error {
+
+	obj := NewEmptyUserImg()
+	pm.SetUserImgDB(obj)
+
+	return pm.HandleFailedValidUpdateObjectLog(oplog, obj, nil)
+}
+
 /**********
  * Customize
  **********/

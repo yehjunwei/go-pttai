@@ -195,6 +195,31 @@ func (pm *ProtocolManager) HandleFailedUserOplog(oplog *pkgservice.BaseOplog) (e
 }
 
 /**********
+ * Handle Failed Valid Oplog
+ **********/
+
+func (pm *ProtocolManager) HandleFailedValidUserOplog(oplog *pkgservice.BaseOplog) (err error) {
+	switch oplog.Op {
+	case UserOpTypeCreateUserName:
+		err = pm.handleFailedValidCreateUserNameLog(oplog)
+	case UserOpTypeUpdateUserName:
+		err = pm.handleFailedValidUpdateUserNameLog(oplog)
+
+	case UserOpTypeCreateUserImg:
+		err = pm.handleFailedValidCreateUserImgLog(oplog)
+	case UserOpTypeUpdateUserImg:
+		err = pm.handleFailedValidUpdateUserImgLog(oplog)
+
+	case UserOpTypeAddUserNode:
+		err = pm.handleFailedValidAddUserNodeLog(oplog)
+	case UserOpTypeRemoveUserNode:
+		err = pm.handleFailedValidRemoveUserNodeLog(oplog)
+	}
+
+	return
+}
+
+/**********
  * Postsync Oplog
  **********/
 

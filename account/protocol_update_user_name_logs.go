@@ -56,6 +56,14 @@ func (pm *ProtocolManager) handleFailedUpdateUserNameLog(oplog *pkgservice.BaseO
 	return pm.HandleFailedUpdateObjectLog(oplog, obj)
 }
 
+func (pm *ProtocolManager) handleFailedValidUpdateUserNameLog(oplog *pkgservice.BaseOplog) error {
+
+	obj := NewEmptyUserName()
+	pm.SetUserNameDB(obj)
+
+	return pm.HandleFailedValidUpdateObjectLog(oplog, obj, nil)
+}
+
 /**********
  * Customize
  **********/

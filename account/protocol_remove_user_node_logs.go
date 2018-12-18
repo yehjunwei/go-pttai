@@ -83,6 +83,13 @@ func (pm *ProtocolManager) handleFailedRemoveUserNodeLog(oplog *pkgservice.BaseO
 	return pm.HandleFailedDeleteObjectLog(oplog, obj)
 }
 
+func (pm *ProtocolManager) handleFailedValidRemoveUserNodeLog(oplog *pkgservice.BaseOplog) error {
+	obj := NewEmptyUserNode()
+	pm.SetUserNodeDB(obj)
+
+	return pm.HandleFailedValidDeleteObjectLog(oplog, obj)
+}
+
 func (pm *ProtocolManager) updateDeleteUserNodeInfo(theUserNode pkgservice.Object, oplog *pkgservice.BaseOplog, theInfo pkgservice.ProcessInfo) error {
 
 	info, ok := theInfo.(*ProcessUserInfo)
