@@ -312,6 +312,46 @@ func (pm *ProtocolManager) HandleFailedBoardOplog(oplog *pkgservice.BaseOplog) (
 }
 
 /**********
+ * Handle Failed Valid Oplog
+ **********/
+
+func (pm *ProtocolManager) HandleFailedValidBoardOplog(oplog *pkgservice.BaseOplog) (err error) {
+
+	switch oplog.Op {
+	case BoardOpTypeDeleteBoard:
+	case BoardOpTypeMigrateBoard:
+
+	case BoardOpTypeCreateTitle:
+		err = pm.handleFailedValidCreateTitleLog(oplog)
+	case BoardOpTypeUpdateTitle:
+		err = pm.handleFailedValidUpdateTitleLog(oplog)
+
+	case BoardOpTypeCreateArticle:
+		err = pm.handleFailedValidCreateArticleLog(oplog)
+	case BoardOpTypeUpdateArticle:
+		err = pm.handleFailedValidUpdateArticleLog(oplog)
+	case BoardOpTypeDeleteArticle:
+		err = pm.handleFailedValidDeleteArticleLog(oplog)
+
+	case BoardOpTypeCreateMedia:
+		err = pm.HandleFailedValidCreateMediaLog(oplog)
+	case BoardOpTypeDeleteMedia:
+		err = pm.HandleFailedValidDeleteMediaLog(oplog)
+
+	case BoardOpTypeCreateComment:
+		err = pm.handleFailedValidCreateCommentLog(oplog)
+	case BoardOpTypeDeleteComment:
+		err = pm.handleFailedValidDeleteCommentLog(oplog)
+
+	case BoardOpTypeCreateReply:
+	case BoardOpTypeUpdateReply:
+	case BoardOpTypeDeleteReply:
+	}
+
+	return
+}
+
+/**********
  * Postsync Oplog
  **********/
 

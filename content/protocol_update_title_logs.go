@@ -56,6 +56,14 @@ func (pm *ProtocolManager) handleFailedUpdateTitleLog(oplog *pkgservice.BaseOplo
 	return pm.HandleFailedUpdateObjectLog(oplog, obj)
 }
 
+func (pm *ProtocolManager) handleFailedValidUpdateTitleLog(oplog *pkgservice.BaseOplog) error {
+
+	obj := NewEmptyTitle()
+	pm.SetTitleDB(obj)
+
+	return pm.HandleFailedValidUpdateObjectLog(oplog, obj, nil)
+}
+
 /**********
  * Customize
  **********/

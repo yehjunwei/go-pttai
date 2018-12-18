@@ -89,3 +89,8 @@ func (pm *BaseProtocolManager) HandleFailedDeleteMediaLog(oplog *BaseOplog) erro
 
 	return pm.HandleFailedDeleteObjectLog(oplog, obj)
 }
+
+func (pm *BaseProtocolManager) HandleFailedValidDeleteMediaLog(oplog *BaseOplog) error {
+
+	return pm.HandleFailedValidDeleteMediaLog(oplog)
+}

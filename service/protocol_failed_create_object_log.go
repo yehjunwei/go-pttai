@@ -101,3 +101,12 @@ func (pm *BaseProtocolManager) HandleFailedCreateObjectLog(
 
 	return nil
 }
+
+func (pm *BaseProtocolManager) HandleFailedValidCreateObjectLog(
+	oplog *BaseOplog,
+	obj Object,
+
+	prefailed func(obj Object, oplog *BaseOplog) error,
+) error {
+	return pm.HandleFailedCreateObjectLog(oplog, obj, prefailed)
+}

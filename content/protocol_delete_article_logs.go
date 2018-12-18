@@ -77,6 +77,14 @@ func (pm *ProtocolManager) handleFailedDeleteArticleLog(oplog *pkgservice.BaseOp
 	return pm.HandleFailedDeleteObjectLog(oplog, obj)
 }
 
+func (pm *ProtocolManager) handleFailedValidDeleteArticleLog(oplog *pkgservice.BaseOplog) error {
+
+	obj := NewEmptyArticle()
+	pm.SetArticleDB(obj)
+
+	return pm.HandleFailedValidDeleteObjectLog(oplog, obj)
+}
+
 /**********
  * Remove Media Info
  **********/

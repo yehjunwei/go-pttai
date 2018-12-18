@@ -16,7 +16,11 @@
 
 package service
 
-import "reflect"
+import (
+	"reflect"
+
+	"github.com/ailabstw/go-pttai/common/types"
+)
 
 /**********
  * Handle Failed DeleteObjectLog
@@ -60,6 +64,53 @@ func (pm *BaseProtocolManager) HandleFailedDeleteObjectLog(
 
 	// 5. obj-save
 	err = origObj.Save(true)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (pm *BaseProtocolManager) HandleFailedValidDeleteObjectLog(
+	oplog *BaseOplog,
+	obj Object,
+) error {
+
+	objID := oplog.ObjID
+	obj.SetID(objID)
+
+	// lock-obj
+	err := obj.Lock()
+	if err != nil {
+		return err
+	}
+	defer obj.Unlock()
+
+	err = obj.GetByID(true)
+	if err != nil {
+		// already deleted
+		return nil
+	}
+
+	// 3. check validity
+	objLogID := obj.GetLogID()
+	if !reflect.DeepEqual(objLogID, oplog.ID) {
+		return nil
+	}
+
+	if oplog.UpdateTS.IsLess(obj.GetUpdateTS()) {
+		return nil
+	}
+
+	// 6. obj-save
+	ts, err := types.GetTimestamp()
+	if err != nil {
+		return err
+	}
+
+	SetFailedObjectWithOplog(obj, oplog, ts)
+
+	err = obj.Save(true)
 	if err != nil {
 		return err
 	}

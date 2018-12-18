@@ -16,7 +16,11 @@
 
 package service
 
-import "reflect"
+import (
+	"reflect"
+
+	"github.com/ailabstw/go-pttai/common/types"
+)
 
 /*
 HandleFailedBoardOplogUpdateArticle handles failed update-article-oplog
@@ -70,4 +74,72 @@ func (pm *BaseProtocolManager) HandleFailedUpdateObjectLog(
 	}
 
 	return nil
+}
+
+func (pm *BaseProtocolManager) HandleFailedValidUpdateObjectLog(
+	oplog *BaseOplog,
+	obj Object,
+
+	prefailed func(obj Object, oplog *BaseOplog) error,
+
+) error {
+	objID := oplog.ObjID
+	obj.SetID(objID)
+
+	// lock-obj
+	err := obj.Lock()
+	if err != nil {
+		return err
+	}
+	defer obj.Unlock()
+
+	err = obj.GetByID(true)
+	if err != nil {
+		// already deleted
+		return nil
+	}
+
+	// 3. check validity
+	updateLogID := obj.GetUpdateLogID()
+	if obj.GetStatus() >= types.StatusDeleted || !reflect.DeepEqual(updateLogID, oplog.ID) {
+		return nil
+	}
+
+	if oplog.UpdateTS.IsLess(obj.GetUpdateTS()) {
+		return nil
+	}
+
+	// 4. prefailed
+	if prefailed != nil {
+		err = prefailed(obj, oplog)
+		if err != nil {
+			return err
+		}
+	}
+
+	// 5. not my object.
+	myID := pm.Ptt().GetMyEntity().GetID()
+	if !reflect.DeepEqual(myID, obj.GetCreatorID()) {
+		blockInfo := obj.GetBlockInfo()
+		err = pm.removeBlockAndMediaInfoByBlockInfo(blockInfo, nil, oplog, true, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	// 6. obj-save
+	ts, err := types.GetTimestamp()
+	if err != nil {
+		return err
+	}
+
+	SetFailedObjectWithOplog(obj, oplog, ts)
+
+	err = obj.Save(true)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }

@@ -78,6 +78,14 @@ func (pm *ProtocolManager) handleFailedDeleteCommentLog(oplog *pkgservice.BaseOp
 	return pm.HandleFailedDeleteObjectLog(oplog, obj)
 }
 
+func (pm *ProtocolManager) handleFailedValidDeleteCommentLog(oplog *pkgservice.BaseOplog) error {
+
+	obj := NewEmptyComment()
+	pm.SetCommentDB(obj)
+
+	return pm.HandleFailedValidDeleteObjectLog(oplog, obj)
+}
+
 /**********
  * Customize
  **********/

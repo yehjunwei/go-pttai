@@ -58,3 +58,7 @@ func (pm *BaseProtocolManager) handleFailedDeleteMemberLog(oplog *BaseOplog) err
 
 	return pm.HandleFailedDeletePersonLog(oplog, obj)
 }
+
+func (pm *BaseProtocolManager) handleFailedValidDeleteMemberLog(oplog *BaseOplog) error {
+	return types.ErrNotImplemented
+}

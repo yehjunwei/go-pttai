@@ -56,6 +56,14 @@ func (pm *ProtocolManager) handleFailedUpdateArticleLog(oplog *pkgservice.BaseOp
 	return pm.HandleFailedUpdateObjectLog(oplog, obj)
 }
 
+func (pm *ProtocolManager) handleFailedValidUpdateArticleLog(oplog *pkgservice.BaseOplog) error {
+
+	obj := NewEmptyArticle()
+	pm.SetArticleDB(obj)
+
+	return pm.HandleFailedValidUpdateObjectLog(oplog, obj, nil)
+}
+
 /**********
  * Customize
  **********/

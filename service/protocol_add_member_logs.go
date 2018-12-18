@@ -71,6 +71,10 @@ func (pm *BaseProtocolManager) handleFailedAddMemberLog(oplog *BaseOplog) error 
 	}
 }
 
+func (pm *BaseProtocolManager) handleFailedValidAddMemberLog(oplog *BaseOplog) error {
+	return types.ErrNotImplemented
+}
+
 /**********
  * Customize
  **********/

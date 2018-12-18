@@ -127,3 +127,7 @@ func (pm *BaseProtocolManager) handleFailedTransferMemberLog(oplog *BaseOplog) e
 
 	return nil
 }
+
+func (pm *BaseProtocolManager) handleFailedValidTransferMemberLog(oplog *BaseOplog) error {
+	return types.ErrNotImplemented
+}
